@@ -24,5 +24,8 @@
   "bugs": {
     "url": "https://gitlab.com/finwo/stream-nagle/issues"
   },
-  "homepage": "https://gitlab.com/finwo/stream-nagle#readme"
+  "homepage": "https://gitlab.com/finwo/stream-nagle#readme",
+  "dependencies": {
+    "through": "^2.3.8"
+  }
 }
