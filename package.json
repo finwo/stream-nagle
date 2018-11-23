@@ -1,0 +1,28 @@
+{
+  "name": "stream-nagle",
+  "version": "0.0.1",
+  "description": "Nagle algorithm for javascript streams",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "NODE_ENV=babel jest --detectOpenHandles"
+  },
+  "devDependencies": {
+    "jest": "^23.6.0",
+    "babel-jest": "^23.6.0",
+    "babel-plugin-add-module-exports": "^1.0.0",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-preset-env": "^1.7.0",
+    "expect": "^23.6.0",
+    "jest-isa": "^0.0.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/finwo/stream-nagle.git"
+  },
+  "author": "Robin Bron <robin@finwo.nl>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/finwo/stream-nagle/issues"
+  },
+  "homepage": "https://gitlab.com/finwo/stream-nagle#readme"
+}
