@@ -26,7 +26,6 @@ module.exports = function( options ) {
 
     // Burst
     if (opts.burst && queue.length) {
-      console.log('burst');
       return sendQueue();
     }
 
