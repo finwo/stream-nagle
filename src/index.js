@@ -1,49 +1,94 @@
 const through = require('through');
 
-module.exports = {
+module.exports = function( options ) {
+  let opts = Object.assign({
+    aggressive: false, // Whether to reset the timer on an incoming packet
+    mtu       : 2048,  // Max outgoing package size + transmission threshold
+    wait      :  200,  // Time to wait for another package
+    burst     : true,  // Empty the whole buffer on sending
+  }, options || {});
 
-  // Encodes multiple 'data' events into few as possible
-  encoder: function (options) {
-    let opts = Object.assign({
-      wait: 200,  // Wait up to 200ms for more packets
-      mtu : 2048, // Max transmission unit (split into multiple packets when overflowing)
-    }, options || {});
+  // This is where we store stuff
+  /** @var {Buffer}         queue */
+  /** @var {Number|Boolean} timeout */
+  let queue   = Buffer.alloc(0),
+      timeout = false,
+      bound   = false;
 
-    let queue = Buffer.alloc(0),
-        timer = false;
+  // Actually sends the data
+  let sendQueue = function() {
+    timeout = false;
 
-    function sendQueue() {
+    // Fetch & emit data
+    let data = queue.slice(0,opts.mtu);
+    queue    = queue.slice(data.length);
+    this.emit('data',data);
 
+    // Burst
+    if (opts.burst && queue.length) {
+      console.log('burst');
+      return sendQueue();
     }
 
-    return through(
-      function write(chunk) {
-        chunk = Buffer.from(chunk);
+    // Run again asap if >mtu
+    if (queue.length >= opts.mtu) {
+      timeout = setTimeout(sendQueue,0);
+      return;
+    }
 
-        // Append chunk to the queue
-        queue = Buffer.concat([queue, Buffer.alloc(4)]);
-        queue.writeInt32BE(chunk.length, queue.length-4);
-        queue = Buffer.concat([queue, chunk]);
+    // Run again if we have data
+    if (queue.length) {
+      timeout = setTimeout(sendQueue,opts.wait);
+    }
 
-        // TODO: trigger send if >mtu
-        // TODO: set timer
+  };
 
-      },
-      function end() {
+  return through(
+    function write(chunk) {
+      chunk = Buffer.from(chunk);
 
-        // TODO: send rest of the queue
-
+      // Ensure sendQueue context
+      if(!bound) {
+        sendQueue = sendQueue.bind(this);
+        bound     = true;
       }
-    );
 
+      // Add data to queue
+      queue = Buffer.concat([queue, chunk]);
 
-  },
+      // Handle aggressive nagle
+      if ( opts.aggressive ) {
+        if (timeout) clearTimeout(timeout);
+        timeout = setTimeout(sendQueue,opts.wait);
+      }
 
-  // Decodes the combined events into multiple
-  decoder: function (options) {
-    let opts = Object.assign({}, options || {})
+      // Handle non-aggressive nagle
+      if (!timeout) {
+        timeout = setTimeout(sendQueue,opts.wait);
+      }
 
-    // TODO: decode stream
+      // Handle transmission threshold
+      if ( queue.length >= opts.mtu ) {
+        if (timeout) clearTimeout(timeout);
+        sendQueue();
+      }
+    },
+    function end() {
 
-  },
+      // Clear timer
+      if (timeout) clearTimeout(timeout);
+
+      // Send remaining chunks
+      while(queue.length >= opts.mtu) {
+        let data = queue.slice(0,opts.mtu);
+        queue    = queue.slice(data.length);
+        this.emit('data',data);
+      }
+
+      // Send remaining data
+      this.emit('data', queue);
+      this.emit('end');
+
+    }
+  )
 };
