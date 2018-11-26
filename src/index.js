@@ -3,8 +3,8 @@ const through = require('through');
 module.exports = function( options ) {
   let opts = Object.assign({
     aggressive: false, // Whether to reset the timer on an incoming packet
-    mtu       : 2048,  // Max outgoing package size + transmission threshold
-    wait      :  200,  // Time to wait for another package
+    mtu       : 2048,  // Max outgoing package size in bytes & transmission threshold
+    wait      :  200,  // Milliseconds to wait for another package
     burst     : true,  // Empty the whole buffer on sending
   }, options || {});
 
