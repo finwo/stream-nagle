@@ -1,6 +1,6 @@
 {
   "name": "stream-nagle",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Nagle algorithm for javascript streams",
   "main": "src/index.js",
   "scripts": {
