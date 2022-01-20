@@ -4,8 +4,14 @@
   "description": "Nagle algorithm for javascript streams",
   "main": "src/index.js",
   "scripts": {
-    "test": "NODE_ENV=babel jest --detectOpenHandles"
+    "test": "NODE_ENV=babel jest --detectOpenHandles",
+    "postpublish": "PACKAGE_VERSION=$(cat package.json | grep \\\"version\\\" | head -1 | awk -F: '{print $2}' | sed 's/[\",]//g' | tr -d '[[:space:]]') && npm deprecate \"stream-nagle@<${PACKAGE_VERSION}\" \"Rolling release, please update to ${PACKAGE_VERSION}\""
   },
+  "files": [
+    "src/index.js",
+    "package.json",
+    "README.md"
+  ],
   "devDependencies": {
     "jest": "^23.6.0",
     "babel-jest": "^23.6.0",

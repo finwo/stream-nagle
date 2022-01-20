@@ -110,6 +110,7 @@ test('Burst behavior', async () => {
   await new Promise(r=>setTimeout(r,100));
 
   // Write more data (overflows mtu)
+  expect(buf.length).toBe(0);
   n.write('Hello World\n');
   expect(buf.length).toBe(24);
 
@@ -118,4 +119,25 @@ test('Burst behavior', async () => {
 
   // Should have received everything now
   expect(buf.length).toBe(24);
+});
+
+test('Support for large blocks', async() => {
+  const n = nagle({ aggressive: true, mtu: 1024, burst: true });
+
+  // Receive buffer
+  let rxbuf = Buffer.alloc(0);
+
+  // Transmit buffer (~10MB)
+  let txbuf = Buffer.alloc(1e7, 1);
+
+  // Merge incoming data
+  n.on('data', function(chunk) {
+    rxbuf = Buffer.concat([rxbuf,chunk]);
+  });
+
+  // Let 'er rip
+  expect(rxbuf.length).toBe(0);
+  n.write(txbuf);
+  expect(rxbuf.length).toBe(txbuf.length);
+
 });

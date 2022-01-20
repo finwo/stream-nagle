@@ -20,14 +20,12 @@ module.exports = function( options ) {
     timeout = false;
 
     // Fetch & emit data
-    let data = queue.slice(0,opts.mtu);
-    queue    = queue.slice(data.length);
-    this.emit('data',data);
-
-    // Burst
-    if (opts.burst && queue.length) {
-      return sendQueue();
-    }
+    // Once or burst
+    do {
+      let data = queue.slice(0,opts.mtu);
+      queue    = queue.slice(data.length);
+      this.emit('data',data);
+    } while (opts.burst && queue.length);
 
     // Run again asap if >mtu
     if (queue.length >= opts.mtu) {
